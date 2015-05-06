@@ -10,7 +10,8 @@ scalacOptions += "-deprecation"
 
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % "1.3.1" ,
-  "com.diegomagalhaes" %% "scalanginxaccesslogparser" % "1.2-SNAPSHOT"
+  "com.diegomagalhaes" %% "scalanginxaccesslogparser" % "1.2-SNAPSHOT",
+  "ch.qos.logback" % "slf4j-log4j12" % "1.7.10"
 )
 
 resolvers ++= Seq(

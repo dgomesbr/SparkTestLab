@@ -1,11 +1,10 @@
+package com.diegomagalhaes.spark
+
 import com.diegomagalhaes.nginxlogparser.NginxLineParser
 import org.apache.spark.{SparkConf, SparkContext}
 
 import scala.language.postfixOps
 
-/**
- * Created by diego.magalhaes on 5/6/2015.
- */
 object RecomendationApp {
   def main(args: Array[String]) {
 
@@ -27,7 +26,7 @@ object RecomendationApp {
     val sc = new SparkContext(conf)
     val path = "C:\\temp\\hive\\access.log-2015-05-05-1430794906"
     val data = sc.textFile(path,2)
-                      .map(parser parse _ )
+                      .map(parser parse)
                       .filter(_.isDefined)
                       .map(_.get)
                       .filter(_.verb != null)
@@ -42,5 +41,9 @@ object RecomendationApp {
       .filter(_.URL.contains("ck.php"))
       .filter(r => r.MSISDN != "-" || r.XCALL != "-")
       .map(x => (x.dateTime, if (x.MSISDN == "-") x.XCALL else x.MSISDN, x.UserAgent, x.URL, "V"))
+
+    println(clicks.count)
+
+    sc.stop()
   }
 }
