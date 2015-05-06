@@ -10,12 +10,10 @@ scalacOptions += "-deprecation"
 
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % "1.3.1" ,
-  "com.diegomagalhaes" %% "scalanginxaccesslogparser" % "1.2-SNAPSHOT",
-  "ch.qos.logback" % "slf4j-log4j12" % "1.7.10"
+  "com.diegomagalhaes" %% "scalanginxaccesslogparser" % "1.3-SNAPSHOT"
 )
 
-resolvers ++= Seq(
-  "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
-)
+resolvers += DefaultMavenRepository
+resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
 
 initialCommands := "import com.diegomagalhaes.sparktestlab._"
