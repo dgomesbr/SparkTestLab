@@ -4,13 +4,12 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 import com.diegomagalhaes.nginxlogparser.{NginxLineParser, NginxLogRecord}
+import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
-import org.slf4j.LoggerFactory
 
 import scala.language.postfixOps
 
 object RecomendationApp {
-  val logger = LoggerFactory.getLogger("name")
 
   private def extractMobileNumber(msisdn: String, xcall: String) = {
     msisdn match {
@@ -27,7 +26,7 @@ object RecomendationApp {
     //https://issues.apache.org/jira/browse/SPARK-2356
     System.setProperty("hadoop.home.dir", "c:\\temp\\")
 
-    lazy val parser = new NginxLineParser
+    val parser = new NginxLineParser
     val conf = new SparkConf()
                       .setMaster("local")
                       .setAppName("Spark Recomendation App")
@@ -35,37 +34,39 @@ object RecomendationApp {
                       .set("spark.rdd.compress","true")
                       .set("spark.storage.memoryFraction","1")
                       .set("spark.driver.memory","1G")
-                      .set("spark.reducer.maxMbInFlight","64")
-                      .set("spark.broadcast.blockSize","1024")
+                      .set("spark.broadcast.blockSize","128")
                       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
                       .set("spark.localExecution.enabled","true")
                       .registerKryoClasses(Array(classOf[NginxLogRecord]))
 
 
     val sc = new SparkContext(conf)
-    val path = "C:\\temp\\hive\\ads\\access.log-2015-05-*.gz"
-    val data = sc.textFile(path,2).flatMap(parser parse).cache()
 
-    val clickData = data
-                      .filter(r => r.verb != null && r.URL.contains("ck.php") && (r.MSISDN != "-" || r.XCALL != "-"))
-                      .map(x =>
-                        (
-                          formatDate(x.dateTime),
-                          extractMobileNumber(x.MSISDN, x.XCALL),
-                          x.UserAgent,
-                          x.URL,
-                          "C"
-                        )
-                      )
+    //val adsPath = "C:\\temp\\hive\\ads\\access.log-2015-05-*.gz"
+    val adsPath = "C:\\temp\\hive\\ads\\access.log-2015-05-06-1430881321.gz"
+    val clickData = sc.textFile(adsPath,2).flatMap(parser parse).filter(_.verb != null).cache()
+    val clicks = collectRecords(clickData).filter(_._4.contains("ck.php"))
 
-//    val visits = data
-//      .filter(_.URL.contains("ck.php"))
-//      .filter(r => r.MSISDN != "-" || r.XCALL != "-")
-//      .map(x => (x.dateTime, if (x.MSISDN == "-") x.XCALL else x.MSISDN, x.UserAgent, x.URL, "V"))
+    val visitPath = "C:\\temp\\hive\\ads\\access.log-2015-05-*.gz"
+    val visitData = sc.textFile(visitPath ,2).flatMap(parser parse).filter(_.verb != null).cache()
+    val visits = collectRecords(visitData)
 
-    val sample = clickData take 5
-    sample foreach println
+    val data = sc.union(clicks, visits).sortBy(_._1)
+    data.saveAsTextFile("C:\\temp\\hive\\recomendacao.csv")
+    sc stop()
+  }
 
-    sc stop
+  def collectRecords(clickData: RDD[NginxLogRecord]): RDD[(String, String, String, String, String)] = {
+    clickData
+      .filter(r => (r.MSISDN != "-" || r.XCALL != "-"))
+      .map(x =>
+      (
+        formatDate(x.dateTime),
+        extractMobileNumber(x.MSISDN, x.XCALL),
+        x.UserAgent,
+        x.URL,
+        "C"
+        )
+      )
   }
 }
