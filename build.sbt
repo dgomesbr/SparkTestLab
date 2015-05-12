@@ -11,7 +11,7 @@ scalacOptions += "-deprecation"
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % "1.3.1" ,
   "com.diegomagalhaes" %% "scalanginxaccesslogparser" % "1.3-SNAPSHOT",
-  "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0"
+  "com.github.tototoshi" %% "scala-csv" % "1.2.1"
 )
 
 resolvers += DefaultMavenRepository
