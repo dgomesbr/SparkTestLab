@@ -45,12 +45,12 @@ object RecomendationApp {
 
 
     val conf = new SparkConf()
-                      .setMaster("local")
+                      .setMaster("local[4]")
                       .setAppName("Spark Recomendation App")
-                      .set("spark.executor.memory","4G")
+                      .set("spark.executor.memory","2G")
                       .set("spark.rdd.compress","true")
                       .set("spark.storage.memoryFraction","1")
-                      .set("spark.driver.memory","4G")
+                      .set("spark.driver.memory","2G")
                       .set("spark.broadcast.blockSize","128")
                       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
                       .set("spark.localExecution.enabled","true")
@@ -60,11 +60,11 @@ object RecomendationApp {
     val parser = new NginxLineParser
     val csvWriter = new LiteCsvWriter(csvFormat)
 
-    val adsPath = "C:\\temp\\hive\\access.log-*"
+    val adsPath = "C:\\temp\\hive\\ads\\access.log-*"
     val clickData = sc textFile(adsPath,2) mapPartitions( _.flatMap(parser parse)  ) cache()
     val clicks = collectRecords(clickData) filter(_._4.contains("ck.php")) map( x => csvWriter toCsvString Seq(List(x._1, x._2, x._3, x._4, x._5)) )
 
-    val visitPath = "C:\\temp\\hive\\access.log-*"
+    val visitPath = "C:\\temp\\hive\\ads\\access.log-*"
     val visitData = sc textFile(visitPath,2) mapPartitions( _.flatMap(parser parse)  ) cache()
     val visits = collectRecords(visitData) map( x => csvWriter toCsvString Seq(List(x._1, x._2, x._3, x._4, x._5)) )
 
