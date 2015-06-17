@@ -61,11 +61,11 @@ object RecomendationApp {
     val csvWriter = new LiteCsvWriter(csvFormat)
 
     val adsPath = "C:\\temp\\hive\\ads\\access.log-*"
-    val clickData = sc textFile(adsPath,2) mapPartitions( _.flatMap(parser parse)  ) cache()
+    val clickData = sc textFile(adsPath,2) mapPartitions( _.flatMap(parser parse)  )
     val clicks = collectRecords(clickData) filter(_._4.contains("ck.php")) map( x => csvWriter toCsvString Seq(List(x._1, x._2, x._3, x._4, x._5)) )
 
     val visitPath = "C:\\temp\\hive\\ads\\access.log-*"
-    val visitData = sc textFile(visitPath,2) mapPartitions( _.flatMap(parser parse)  ) cache()
+    val visitData = sc textFile(visitPath,2) mapPartitions( _.flatMap(parser parse)  )
     val visits = collectRecords(visitData) map( x => csvWriter toCsvString Seq(List(x._1, x._2, x._3, x._4, x._5)) )
 
 
