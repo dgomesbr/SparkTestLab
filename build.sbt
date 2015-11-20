@@ -9,9 +9,12 @@ scalaVersion := "2.10.4"
 scalacOptions += "-deprecation"
 
 libraryDependencies ++= Seq(
-  "org.apache.spark" % "spark-core_2.10" % "1.5.2",
   "com.diegomagalhaes" %% "scalanginxaccesslogparser" % "1.3-SNAPSHOT",
+  "org.apache.spark" % "spark-core_2.10" % "1.5.2",
+  "org.apache.spark" % "spark-sql_2.10" % "1.5.2",
+  "com.databricks" % "spark-csv_2.10" % "1.2.0",
   "com.github.tototoshi" % "scala-csv_2.10" % "1.2.2"
+
 )
 
 resolvers += DefaultMavenRepository
