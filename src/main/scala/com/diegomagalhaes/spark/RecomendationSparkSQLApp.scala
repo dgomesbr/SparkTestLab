@@ -1,10 +1,9 @@
-package com.diegomagalhaes
+package com.diegomagalhaes.spark
 
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 import com.diegomagalhaes.nginxlogparser.{NginxLineParser, NginxLogRecord}
-import com.diegomagalhaes.spark.LiteCsvWriter
 import org.apache.spark.{SparkConf, SparkContext}
 
 /**
@@ -49,7 +48,7 @@ object RecomendationSparkSQLApp {
     val data = sc
       .textFile("C:\\temp\\hive\\access.log-2015-11-15-1447552921.gz")
       //.textFile("s3n://bemobilogs/vpc-8656a8e3/Tim-ADS-ec2/2015/11/15/access/ip-192-168-0-12/*")
-      .mapPartitions(_.flatMap(parser parse))
+      .mapPartitions(_.flatMap(parser.parse))
       .persist(org.apache.spark.storage.StorageLevel.DISK_ONLY) // cache!
     data.name = "logs"
 
@@ -70,7 +69,7 @@ object RecomendationSparkSQLApp {
           verb is not null AND
           instr(URL,'ck.php') > 0
       """
-    val validLogs = sqlContext.sql(click_sql_with_date);
+    val validLogs = sqlContext.sql(click_sql_with_date)
     validLogs.take(1).foreach(println)
 
     //val file = "C:\\temp\\hive\\recomendacao"
