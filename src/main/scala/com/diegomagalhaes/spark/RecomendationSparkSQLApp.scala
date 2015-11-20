@@ -14,6 +14,11 @@ object RecomendationSparkSQLApp {
   val DateFormatterInput = DateTimeFormatter.ofPattern("dd/MMM/YYYY:HH:mm:ss Z",Locale.US)
   val DateFormatterOutput = DateTimeFormatter.ofPattern("YYYY-MM-dd hh:mm:ss",Locale.US)
 
+  /**
+    * Function to be used as UDF for Spark SQL
+    * @param date date to be formatted
+    * @return Date in the "YYYY-MM-dd hh:mm:ss" pattern
+    */
   def formatDate(date:String) = DateFormatterOutput.format(DateFormatterInput.parse(date))
 
 
