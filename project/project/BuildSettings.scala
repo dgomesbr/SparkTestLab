@@ -3,8 +3,7 @@ package project
 import sbt.Keys._
 import sbt._
 import sbtassembly.AssemblyPlugin.autoImport._
-import sbtassembly.{AssemblyKeys, MergeStrategy, PathList}
-import AssemblyKeys._
+import sbtassembly.{MergeStrategy, PathList}
 
 object BuildSettings {
 
@@ -31,6 +30,7 @@ object BuildSettings {
       "org.apache.spark" % "spark-sql_2.10" % "1.5.2" % "provided",
       "com.databricks" % "spark-csv_2.10" % "1.2.0",
       "com.github.tototoshi" % "scala-csv_2.10" % "1.2.2",
+      "org.specs2" % "specs2_2.10" % "1.12.3" % "test"
     )
   )
 
