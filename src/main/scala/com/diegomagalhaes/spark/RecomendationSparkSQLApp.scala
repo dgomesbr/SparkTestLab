@@ -4,7 +4,7 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 import com.diegomagalhaes.nginxlogparser.{NginxLineParser, NginxLogRecord}
-import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.{SparkContext, SparkConf}
 
 /**
   * Created by diego.magalhaes on 11/20/2015.
@@ -28,7 +28,16 @@ object RecomendationSparkSQLApp {
     System.setProperty("hadoop.home.dir", "c:\\temp\\")
 
 
-    def getConfigurationSpec: SparkConf = {
+      // Run the word count
+      RecomendationSparkSQLApp.execute(
+        master    = Some("local[*]"),
+        args      = args.toList,
+        jars      = Seq.empty//List(SparkContext.jarOfObject(this).get)
+      )
+
+      // Exit with success
+      System.exit(0)
+/*    def getConfigurationSpec: SparkConf = {
       new SparkConf()
         .setMaster("local[4]")
         .setAppName("Spark Recomendation App")
@@ -40,9 +49,23 @@ object RecomendationSparkSQLApp {
         .set("spark.broadcast.blockSize", "128")
         .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
         .registerKryoClasses(Array(classOf[NginxLogRecord], classOf[LiteCsvWriter]))
+    }*/
+  }
+
+  def execute(master: Option[String], args: List[String], jars: Seq[String] = Nil) {
+    val sc = {
+      val conf = new SparkConf()
+        .setAppName(RecomendationSparkSQLApp.getClass.getName)
+        .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+        .set("spark.ui.showConsoleProgress", "false")
+        .registerKryoClasses(Array(classOf[NginxLogRecord], classOf[LiteCsvWriter]))
+        .setJars(jars)
+      for (m <- master) {
+        conf.setMaster(m)
+      }
+      new SparkContext(conf)
     }
 
-    val sc = new SparkContext(getConfigurationSpec)
     val sqlContext = new org.apache.spark.sql.SQLContext(sc)
     sqlContext.udf.register("customDateFormatter", formatDate(_:String))
 
@@ -50,38 +73,25 @@ object RecomendationSparkSQLApp {
     import sqlContext.implicits._
 
     val parser = new NginxLineParser
-    val data = sc
-      .textFile("C:\\temp\\hive\\access.log-2015-11-15-1447552921.gz")
+    val data = sc.textFile("C:\\temp\\hive\\access.log-2015-11-15-1447552921.gz")
       //.textFile("s3n://bemobilogs/vpc-8656a8e3/Tim-ADS-ec2/2015/11/15/access/ip-192-168-0-12/*")
       .mapPartitions(_.flatMap(parser.parse))
       .persist(org.apache.spark.storage.StorageLevel.DISK_ONLY) // cache!
-    data.name = "logs"
 
     data.toDF().registerTempTable("logs")
+    val click_sql_with_date =
+    //s"SELECT verb, ResponseCode, count(ResponseCode) FROM logs WHERE verb is not null GROUP BY verb, ResponseCode ORDER BY verb"
+    """
+      SELECT
 
-    val click_sql_with_date = s"SELECT verb, ResponseCode, count(ResponseCode) FROM logs GROUP BY verb, ResponseCode"
-      /*
-      """
-        SELECT
-
-        FROM
-          logs
-        WHERE
-          (MSISDN != '-' OR XCALL != '-') AND
-          verb is not null AND
-          instr(URL,'ck.php') > 0
-      """
-      */
+      FROM
+        logs
+      WHERE
+        (MSISDN != '-' OR XCALL != '-') AND
+        verb is not null AND
+        instr(URL,'ck.php') > 0
+    """
     val validLogs = sqlContext.sql(click_sql_with_date)
     validLogs.foreach(println)//.take(1).foreach(println)
-
-    //val file = "C:\\temp\\hive\\recomendacao"
-    //val destination = "C:\\temp\\hive\\recomendacao.csv"
-
-    //FileUtil.fullyDelete(new java.io.File(file))
-    //sc.union(clicks, visits).saveAsTextFile(file)
-    //merge(file, destination)
-
-    sc.stop()
   }
 }
