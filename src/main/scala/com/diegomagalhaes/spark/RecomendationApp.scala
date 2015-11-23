@@ -1,6 +1,6 @@
 package com.diegomagalhaes.spark
 
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
 import java.util.Locale
 
 import com.diegomagalhaes.nginxlogparser.{NginxLineParser, NginxLogRecord}
@@ -14,9 +14,8 @@ import scala.language.postfixOps
 
 object RecomendationApp {
 
-  val DateFormatterInput = DateTimeFormatter.ofPattern("dd/MMM/YYYY:HH:mm:ss Z",Locale.US)
-  val DateFormatterOutput = DateTimeFormatter.ofPattern("YYYY-MM-dd hh:mm:ss",Locale.US)
-
+  val DateFormatterInput = new SimpleDateFormat("dd/MMM/YYYY:HH:mm:ss Z",Locale.US)
+  val DateFormatterOutput = new SimpleDateFormat("YYYY-MM-dd hh:mm:ss",Locale.US)
 
   implicit val csvFormat = new DefaultCSVFormat with Serializable{
     override val delimiter: Char = ','
@@ -30,7 +29,7 @@ object RecomendationApp {
   }
 
   def extractMobileNumber(msisdn: String, xcall: String) = if (msisdn == "-") xcall else msisdn
-  def formatDate(dfIn: DateTimeFormatter, dfOut: DateTimeFormatter, date: String) = dfOut.format(dfIn.parse(date))
+  def formatDate(dfIn: SimpleDateFormat, dfOut: SimpleDateFormat, date: String) = dfOut.format(dfIn.parse(date))
 
   def merge(srcPath: String, dstPath: String): Unit =  {
     val hadoopConfig = new Configuration()

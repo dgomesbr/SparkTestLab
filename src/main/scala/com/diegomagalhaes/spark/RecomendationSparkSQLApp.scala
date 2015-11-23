@@ -1,6 +1,6 @@
 package com.diegomagalhaes.spark
 
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
 import java.util.Locale
 
 import com.diegomagalhaes.nginxlogparser.{NginxLineParser, NginxLogRecord}
@@ -11,8 +11,8 @@ import org.apache.spark.{SparkConf, SparkContext}
   */
 object RecomendationSparkSQLApp {
 
-  val DateFormatterInput = DateTimeFormatter.ofPattern("dd/MMM/YYYY:HH:mm:ss Z",Locale.US)
-  val DateFormatterOutput = DateTimeFormatter.ofPattern("YYYY-MM-dd hh:mm:ss",Locale.US)
+  val DateFormatterInput = new SimpleDateFormat("dd/MMM/YYYY:HH:mm:ss Z",Locale.US)
+  val DateFormatterOutput = new SimpleDateFormat("YYYY-MM-dd hh:mm:ss",Locale.US)
 
   /**
     * Function to be used as UDF for Spark SQL
@@ -59,14 +59,11 @@ object RecomendationSparkSQLApp {
 
     data.toDF().registerTempTable("logs")
 
-    val click_sql_with_date =
+    val click_sql_with_date = s"SELECT verb, ResponseCode, count(ResponseCode) FROM logs GROUP BY verb, ResponseCode"
+      /*
       """
         SELECT
-          customDateFormatter(dateTime) AS DATE,
-          IF (MSISDN='-',XCALL,MSISDN) AS MSISDN,
-          UserAgent AS UA,
-          URL,
-          'C' as URL_TYPE
+
         FROM
           logs
         WHERE
@@ -74,8 +71,9 @@ object RecomendationSparkSQLApp {
           verb is not null AND
           instr(URL,'ck.php') > 0
       """
+      */
     val validLogs = sqlContext.sql(click_sql_with_date)
-    validLogs.take(1).foreach(println)
+    validLogs.foreach(println)//.take(1).foreach(println)
 
     //val file = "C:\\temp\\hive\\recomendacao"
     //val destination = "C:\\temp\\hive\\recomendacao.csv"
