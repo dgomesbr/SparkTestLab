@@ -1,7 +1,7 @@
 package project
 
-import sbt.Keys._
 import sbt._
+import Keys._
 import sbtassembly.AssemblyPlugin.autoImport._
 import sbtassembly.{MergeStrategy, PathList}
 
